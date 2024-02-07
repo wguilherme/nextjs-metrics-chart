@@ -5,13 +5,23 @@ import ReactECharts from 'echarts-for-react';
 export default function Home() {
   const [chartData, setChartData] = useState([]);
   const [clickData, setClickData] = useState([]);
+  const [monthName, setMonthName] = useState('');
 
   useEffect(() => {
+    const currentDate = new Date();
+    const month = currentDate.getMonth(); // Mês atual (0-11)
+    const monthNames = [
+      'Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho',
+      'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'
+    ];
+    const monthName = monthNames[month];
+
+    setMonthName(monthName);
+
     // Função para gerar dados de visitas
     const generateRandomVisitData = () => {
-      const currentDate = new Date();
       const currentYear = currentDate.getFullYear();
-      const daysInMonth = new Date(currentYear, currentDate.getMonth() + 1, 0).getDate();
+      const daysInMonth = new Date(currentYear, month + 1, 0).getDate();
 
       const data = [];
       for (let day = 1; day <= daysInMonth; day++) {
@@ -24,9 +34,8 @@ export default function Home() {
 
     // Função para gerar dados de cliques
     const generateRandomClickData = () => {
-      const currentDate = new Date();
       const currentYear = currentDate.getFullYear();
-      const daysInMonth = new Date(currentYear, currentDate.getMonth() + 1, 0).getDate();
+      const daysInMonth = new Date(currentYear, month + 1, 0).getDate();
 
       const clickDataArray = [];
 
@@ -79,7 +88,8 @@ export default function Home() {
       trigger: 'axis',
       formatter: function (params) {
         const day = params[0].axisValue;
-        let tooltip = '';
+        const tooltipTitle = `Dia ${day} de ${monthName}`; // Título do tooltip
+        let tooltip = `<strong>${tooltipTitle}</strong><br>`;
         params.forEach(param => {
           const seriesName = param.seriesName;
           const value = param.value;
