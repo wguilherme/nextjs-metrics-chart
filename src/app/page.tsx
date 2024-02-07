@@ -4,9 +4,11 @@ import ReactECharts from 'echarts-for-react';
 
 export default function Home() {
   const [chartData, setChartData] = useState([]);
+  const [clickData, setClickData] = useState([]);
 
   useEffect(() => {
-    const generateRandomData = () => {
+    // Função para gerar dados de visitas
+    const generateRandomVisitData = () => {
       const currentDate = new Date();
       const currentYear = currentDate.getFullYear();
       const daysInMonth = new Date(currentYear, currentDate.getMonth() + 1, 0).getDate();
@@ -20,8 +22,34 @@ export default function Home() {
       return data;
     };
 
-    const newData = generateRandomData();
-    setChartData(newData);
+    // Função para gerar dados de cliques
+    const generateRandomClickData = () => {
+      const currentDate = new Date();
+      const currentYear = currentDate.getFullYear();
+      const daysInMonth = new Date(currentYear, currentDate.getMonth() + 1, 0).getDate();
+
+      const clickDataArray = [];
+
+      // Mock de array de URLs
+      const urls = ['https://example.com/url1', 'https://example.com/url2', 'https://example.com/url3'];
+
+      urls.forEach(url => {
+        const clicksArray = [];
+        for (let day = 1; day <= daysInMonth; day++) {
+          const randomClicks = Math.floor(Math.random() * 500); // Números aleatórios de cliques até 500 por dia
+          clicksArray.push(randomClicks);
+        }
+        clickDataArray.push({ url, data: clicksArray });
+      });
+
+      return clickDataArray;
+    };
+
+    const newVisitData = generateRandomVisitData();
+    const newClickData = generateRandomClickData();
+
+    setChartData(newVisitData);
+    setClickData(newClickData);
   }, []);
 
   const options = {
@@ -36,21 +64,35 @@ export default function Home() {
     series: [
       {
         data: chartData,
-        type: 'bar',
-        smooth: false,
+        type: 'line',
+        smooth: true,
+        name: 'Visitas'
       },
+      ...clickData.map((click, index) => ({
+        data: click.data,
+        type: 'bar',
+        name: `Cliques - ${click.url}`,
+        stack: 'cliques',
+      })),
     ],
     tooltip: {
       trigger: 'axis',
       formatter: function (params) {
         const day = params[0].axisValue;
-        const count = params[0].value;
-        const date = new Date();
-        date.setDate(day);
-        const dayNames = ['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb'];
-        const dayName = dayNames[date.getDay()];
+        let tooltip = '';
+        params.forEach(param => {
+          const seriesName = param.seriesName;
+          const value = param.value;
+          const seriesType = param.seriesType;
+          const url = clickData.find(item => item.url === seriesName.split(' - ')[1])?.url;
 
-        return `${dayName}, dia ${day} - ${count} visitas`;
+          if (seriesType === 'line') {
+            tooltip += `${seriesName}: ${value} visitas<br>`;
+          } else {
+            tooltip += `Clique - ${url}: ${value}<br>`;
+          }
+        });
+        return tooltip;
       },
     },
   };
